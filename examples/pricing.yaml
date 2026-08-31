@@ -1,0 +1,54 @@
+schema_version: 1
+customers:
+  - id: acme
+    name: Acme Synthetic Labs
+products:
+  - id: agent_task
+    name: Completed agent task
+    unit: task
+  - id: input_tokens
+    name: Agent input tokens
+    unit: 1000_tokens
+prices:
+  - id: task_v1
+    product_id: agent_task
+    currency: USD
+    unit_amount_minor: 250
+    unit_size: 1
+    effective_from: 2026-01-01
+  - id: tokens_v1
+    product_id: input_tokens
+    currency: USD
+    unit_amount_minor: 5
+    unit_size: 1000
+    effective_from: 2026-01-01
+credit_buckets:
+  - id: task_credits
+    customer_id: acme
+    currency: USD
+    initial_balance_minor: 2500
+    product_ids: [agent_task]
+    valid_from: 2026-01-01
+  - id: general_credits
+    customer_id: acme
+    currency: USD
+    initial_balance_minor: 1000
+    product_ids: []
+    valid_from: 2026-01-01
+recharge_policies:
+  - id: acme_recharge
+    customer_id: acme
+    currency: USD
+    threshold_minor: 500
+    recharge_amount_minor: 2000
+    max_recharges_per_period: 1
+monthly_commitments:
+  - id: acme_commit
+    customer_id: acme
+    currency: USD
+    amount_minor: 5000
+discounts:
+  - id: task_discount
+    customer_id: acme
+    basis_points: 1000
+    product_ids: [agent_task]

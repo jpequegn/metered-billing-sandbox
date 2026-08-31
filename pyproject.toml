@@ -7,6 +7,8 @@ requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Julien Pequegnot" }]
 dependencies = [
+  "pydantic>=2.11,<3",
+  "pyyaml>=6,<7",
   "typer>=0.16,<1",
 ]
 
