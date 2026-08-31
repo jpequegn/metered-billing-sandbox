@@ -1,0 +1,39 @@
+[project]
+name = "metered-billing-sandbox"
+version = "0.1.0"
+description = "Local sandbox for deterministic usage billing and agent spend governance"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Julien Pequegnot" }]
+dependencies = [
+  "typer>=0.16,<1",
+]
+
+[project.scripts]
+metered-billing = "metered_billing.cli:app"
+
+[dependency-groups]
+dev = [
+  "build>=1.2,<2",
+  "pytest>=8.4,<9",
+  "ruff>=0.12,<1",
+]
+
+[build-system]
+requires = ["flit_core>=3.12,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.module]
+name = "metered_billing"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
