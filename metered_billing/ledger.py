@@ -25,7 +25,7 @@ class IdempotencyConflictError(LedgerError):
 class LedgerStore:
     """Own the SQLite schema and atomic mutations for one billing ledger."""
 
-    SCHEMA_VERSION = 1
+    SCHEMA_VERSION = 2
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
@@ -115,7 +115,31 @@ class LedgerStore:
                     ON ledger_entries(customer_id, occurred_at);
                     """
                 )
-                connection.execute(f"PRAGMA user_version = {self.SCHEMA_VERSION}")
+                connection.execute("PRAGMA user_version = 1")
+            current = 1
+        if current < 2:
+            with self.transaction() as connection:
+                connection.executescript(
+                    """
+                    CREATE TABLE rated_events (
+                        event_id TEXT PRIMARY KEY,
+                        price_id TEXT NOT NULL,
+                        currency TEXT NOT NULL,
+                        gross_minor INTEGER NOT NULL CHECK (gross_minor >= 0),
+                        discount_minor INTEGER NOT NULL CHECK (discount_minor >= 0),
+                        credit_minor INTEGER NOT NULL CHECK (credit_minor >= 0),
+                        overage_minor INTEGER NOT NULL CHECK (overage_minor >= 0),
+                        period_start TEXT NOT NULL,
+                        period_end TEXT NOT NULL,
+                        rated_at TEXT NOT NULL,
+                        FOREIGN KEY (event_id) REFERENCES usage_events(event_id)
+                    );
+
+                    CREATE INDEX rated_events_period
+                    ON rated_events(period_start, period_end, currency);
+                    """
+                )
+                connection.execute("PRAGMA user_version = 2")
 
     @staticmethod
     def _utc_now() -> str:
