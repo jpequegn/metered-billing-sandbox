@@ -40,6 +40,12 @@ class PolicyOutcome(StrEnum):
     DENY = "deny"
 
 
+class SpendLimitScope(StrEnum):
+    CUSTOMER = "customer"
+    AGENT = "agent"
+    WORKFLOW = "workflow"
+
+
 class LedgerEntryKind(StrEnum):
     CREDIT_GRANT = "credit_grant"
     CREDIT_CONSUMPTION = "credit_consumption"
@@ -127,6 +133,42 @@ class UsageEvent(FrozenModel):
     workflow_id: Identifier | None = None
     risk_level: RiskLevel = RiskLevel.LOW
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class SpendLimit(FrozenModel):
+    id: Identifier
+    customer_id: Identifier
+    currency: Currency
+    scope: SpendLimitScope
+    subject_id: Identifier | None = None
+    daily_limit_minor: PositiveMinorUnits
+    approval_above_minor: MinorUnits | None = None
+
+    @model_validator(mode="after")
+    def validate_subject(self) -> SpendLimit:
+        if self.scope == SpendLimitScope.CUSTOMER and self.subject_id is not None:
+            raise ValueError("customer limits must not define subject_id")
+        if self.scope != SpendLimitScope.CUSTOMER and self.subject_id is None:
+            raise ValueError(f"{self.scope.value} limits require subject_id")
+        if (
+            self.approval_above_minor is not None
+            and self.approval_above_minor > self.daily_limit_minor
+        ):
+            raise ValueError("approval_above_minor must not exceed daily_limit_minor")
+        return self
+
+
+class SpendPolicySpec(FrozenModel):
+    schema_version: Annotated[int, Field(strict=True, ge=1)]
+    limits: tuple[SpendLimit, ...]
+    hold_risk_levels: tuple[RiskLevel, ...] = (RiskLevel.HIGH,)
+
+    @model_validator(mode="after")
+    def validate_unique_limits(self) -> SpendPolicySpec:
+        ids = [limit.id for limit in self.limits]
+        if len(ids) != len(set(ids)):
+            raise ValueError("duplicate spend limit id")
+        return self
 
 
 class Approval(FrozenModel):

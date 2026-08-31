@@ -25,7 +25,7 @@ class IdempotencyConflictError(LedgerError):
 class LedgerStore:
     """Own the SQLite schema and atomic mutations for one billing ledger."""
 
-    SCHEMA_VERSION = 2
+    SCHEMA_VERSION = 3
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
@@ -140,6 +140,42 @@ class LedgerStore:
                     """
                 )
                 connection.execute("PRAGMA user_version = 2")
+            current = 2
+        if current < 3:
+            with self.transaction() as connection:
+                connection.executescript(
+                    """
+                    CREATE TABLE policy_decisions (
+                        decision_id TEXT PRIMARY KEY,
+                        event_id TEXT NOT NULL UNIQUE,
+                        outcome TEXT NOT NULL,
+                        reason_codes_json TEXT NOT NULL,
+                        estimated_minor INTEGER NOT NULL CHECK (estimated_minor >= 0),
+                        currency TEXT NOT NULL,
+                        applicable_limit_ids_json TEXT NOT NULL,
+                        customer_id TEXT NOT NULL,
+                        agent_id TEXT,
+                        workflow_id TEXT,
+                        occurred_date TEXT NOT NULL,
+                        created_at TEXT NOT NULL,
+                        FOREIGN KEY (event_id) REFERENCES usage_events(event_id)
+                    );
+
+                    CREATE TABLE approvals (
+                        approval_id TEXT PRIMARY KEY,
+                        event_id TEXT NOT NULL UNIQUE,
+                        outcome TEXT NOT NULL,
+                        actor TEXT NOT NULL,
+                        reason TEXT NOT NULL,
+                        decided_at TEXT NOT NULL,
+                        FOREIGN KEY (event_id) REFERENCES usage_events(event_id)
+                    );
+
+                    CREATE INDEX policy_decisions_daily
+                    ON policy_decisions(customer_id, occurred_date, outcome);
+                    """
+                )
+                connection.execute("PRAGMA user_version = 3")
 
     @staticmethod
     def _utc_now() -> str:

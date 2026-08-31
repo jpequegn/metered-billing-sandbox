@@ -33,6 +33,15 @@ class RatingResult:
     commitment_minor: int
 
 
+@dataclass(frozen=True)
+class ChargeEstimate:
+    price_id: str
+    currency: str
+    gross_minor: int
+    discount_minor: int
+    net_minor: int
+
+
 class RatingEngine:
     def __init__(self, store: LedgerStore, spec: PricingSpec) -> None:
         self.store = store
@@ -98,6 +107,23 @@ class RatingEngine:
                 period_end=period_end,
             )
         return RatingResult(**totals)
+
+    def estimate_event(self, event) -> ChargeEstimate:
+        """Estimate one event without mutating the ledger."""
+        price = self._price_for(event.product_id, event.occurred_at.date())
+        gross = self._round_charge(event.quantity, price)
+        discount = self._discount_for(
+            customer_id=event.customer_id,
+            product_id=event.product_id,
+            gross_minor=gross,
+        )
+        return ChargeEstimate(
+            price_id=price.id,
+            currency=price.currency,
+            gross_minor=gross,
+            discount_minor=discount,
+            net_minor=gross - discount,
+        )
 
     def _seed_credit_buckets(self, customer_id: str) -> None:
         for bucket in self.spec.credit_buckets:
