@@ -16,3 +16,4 @@ jobs:
       - run: uv sync --all-groups --locked --no-editable
       - run: uv run --no-editable ruff check .
       - run: uv run --no-editable pytest
+      - run: uv build
