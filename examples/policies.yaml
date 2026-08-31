@@ -1,0 +1,23 @@
+schema_version: 1
+hold_risk_levels: [high]
+limits:
+  - id: acme_daily
+    customer_id: acme
+    currency: USD
+    scope: customer
+    daily_limit_minor: 10000
+    approval_above_minor: 7500
+  - id: triage_agent_daily
+    customer_id: acme
+    currency: USD
+    scope: agent
+    subject_id: triage_agent
+    daily_limit_minor: 2500
+    approval_above_minor: 2000
+  - id: repo_triage_daily
+    customer_id: acme
+    currency: USD
+    scope: workflow
+    subject_id: repo_triage
+    daily_limit_minor: 5000
+    approval_above_minor: 4000
