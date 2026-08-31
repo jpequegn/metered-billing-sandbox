@@ -1,0 +1,14 @@
+{
+  "event_id": "usage_001",
+  "idempotency_key": "example-request-001",
+  "customer_id": "acme",
+  "product_id": "agent_task",
+  "quantity": 2,
+  "occurred_at": "2026-08-15T12:00:00Z",
+  "agent_id": "triage_agent",
+  "workflow_id": "repo_triage",
+  "risk_level": "low",
+  "metadata": {
+    "fixture": true
+  }
+}
