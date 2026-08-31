@@ -46,6 +46,7 @@ class LedgerEntryKind(StrEnum):
     CHARGE = "charge"
     DISCOUNT = "discount"
     RECHARGE = "recharge"
+    COMMITMENT = "commitment"
     ADJUSTMENT = "adjustment"
 
 

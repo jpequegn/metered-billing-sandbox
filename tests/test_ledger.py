@@ -36,11 +36,11 @@ def bucket() -> CreditBucket:
 def test_initializes_and_reopens_database(tmp_path: Path) -> None:
     path = tmp_path / "billing.sqlite"
     with LedgerStore(path) as store:
-        assert store.schema_version() == 1
+        assert store.schema_version() == LedgerStore.SCHEMA_VERSION
         assert store.usage_count() == 0
 
     with LedgerStore(path) as reopened:
-        assert reopened.schema_version() == 1
+        assert reopened.schema_version() == LedgerStore.SCHEMA_VERSION
 
 
 def test_ingests_usage_exactly_once(tmp_path: Path) -> None:
